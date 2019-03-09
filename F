@@ -1,0 +1,97 @@
+import csv
+
+#function fuzzyfikasi
+def fuzzy(pendapatan,hutang):
+	pr,pm,pt = 0, 0, 0
+	hr,hm,ht = 0, 0,  0
+
+	
+        #penghasilan
+	if(pendapatan <= 0.6):
+		pr=1
+	elif(pendapatan > 0,6 ) and (pendapatan < 1.2):
+		pr=(1.2 - pendapatan)/(1.2 - 0.6)
+		pm= 1-pr
+	elif(pendapatan == 1,2 ):
+		pm=1
+	elif(pendapatan > 1.2) and ( pendapatan < 1.5 ):
+		pm=(1.5-pendapatan )/(1.5 - 1.2)
+		pt=1 - pm
+	elif(pendapatan >= 1.5):
+		pt= 1
+        
+        #Hutang
+	if(hutang <= 22 ):
+		hr=1
+	elif(hutang > 22) and (hutang < 50):
+		hr=(50-hutang)/(50-22)
+		hm=1-hr
+	elif(hutang == 50 ):
+		hm=1
+	elif(hutang > 50) and (hutang < 70):
+		hm=(70-hutang)/(70-50)
+		ht=1-hm
+	elif(hutang >= 70):
+		ht=1
+
+	return pr,pm,pt,hr,hm,ht
+
+#function Rules
+def rule(pr,pm,pt,hr,hm,ht):
+	terima=[0,0]
+	tolak=[0,0,0,0,0,0,0]
+	
+	if (pr>0) and (hr>0):
+		tolak[0]=min(pr,hr)
+	
+	if (pm>0) and (hr>0):
+		tolak[1]=min(pm,hr)
+	
+	if (pt>0) and (hr>0):
+		tolak[2]=min(pt,hr)
+	
+	if (pr>0) and (hm>0):
+		tolak[3]=min(pr,hm)
+
+	if (pm>0) and (hm>0):
+		tolak[4]=min(pm,hm)
+
+	if (pt>0) and (hm>0):
+		tolak[5]=min(pt,hm)
+
+	if (pr>0) and (ht>0):
+		terima[0]=min(pr,ht)
+
+	if (pm>0) and (ht>0):
+		terima[1]=min(pm,ht)
+
+	if (pt>0) and (ht>0):
+		tolak[6]=min(pt,ht)
+
+	return max(terima), max(tolak)
+#function Defuzzyfikasi
+def defuzzy(terima,tolak):
+	return(terima*60 + tolak*40)/(terima+tolak)
+
+with open('DataTugas2.csv') as file:
+	reader = csv.reader(file,delimiter=',')
+	next(reader)
+	#Read seacond data from csv
+	with open('TebakanTugas2.csv','w',newline='') as data:
+		fieldnames=['No','Penghasilan','Hutang']
+		thewriter=csv.DictWriter(data,fieldnames=fieldnames)
+
+		thewriter.writeheader()
+		for row in reader:
+			pr,pm,pt,hr,hm,ht= fuzzy(float(row[1]),float(row[2]))
+			terima,tolak=rule(pr,pm,pt,hr,hm,ht) 
+			hasil= defuzzy(terima,tolak)
+			if( hasil>52):
+				thewriter.writerow({'No':row[0],'Penghasilan':row[1],'Hutang':row[2]})
+
+
+	#Write data to csv
+
+
+
+		
